@@ -56,6 +56,8 @@ class Bot:
 
             if self.rules_met_to_buy():
                 self.buy_position(self.current_position)
+            else:
+                self.bought_current_position = None
 
             selling_positions = []
 
