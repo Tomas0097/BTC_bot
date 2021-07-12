@@ -38,7 +38,6 @@ class Bot:
     last_but_one_position = None
     last_position = None
     current_position = None
-    bought_current_position = None
     selled_profitable_positions = []
     own_positions = []
 
@@ -55,9 +54,9 @@ class Bot:
             self.set_up_positions()
 
             if self.rules_met_to_buy():
-                self.buy_position(self.current_position)
+                bought_current_position = self.buy_position(self.current_position)
             else:
-                self.bought_current_position = None
+                bought_current_position = None
 
             selling_positions = []
 
@@ -70,11 +69,7 @@ class Bot:
                     self.sell_position(position)
                     selling_positions.append(position)
 
-            print(f"{self.get_current_time()} - Current price: {self.current_position} - Bought: {'YES' if self.bought_current_position else 'NO'}")
-            print(f"Selling positions: {selling_positions if selling_positions else 'none'}")
-            print(f"All selled positions: {self.selled_profitable_positions if self.selled_profitable_positions else 'none'}")
-            print(f"{len(self.own_positions)} Own positions: {self.own_positions}")
-            print(f"Income: {self.income}\n")
+            self.display_info(bought_current_position, selling_positions)
 
     def rules_met_to_buy(self):
         if not self.last_but_one_position or not self.last_position:
@@ -89,8 +84,8 @@ class Bot:
         return True
 
     def buy_position(self, position):
-        self.bought_current_position = position
         self.own_positions.append(position)
+        return position
 
     def sell_position(self, position):
         self.own_positions.remove(position)
@@ -100,6 +95,13 @@ class Bot:
         self.last_but_one_position = copy.deepcopy(self.last_position)
         self.last_position = copy.deepcopy(self.current_position)
         self.current_position = self.get_currency_price()
+
+    def display_info(self, bought_current_position, selling_positions):
+        print(f"{self.get_current_time()} - Current price: {self.current_position} - Bought: {'YES' if bought_current_position else 'NO'}")
+        print(f"Selling positions: {selling_positions if selling_positions else 'none'}")
+        print(f"All selled positions: {self.selled_profitable_positions if self.selled_profitable_positions else 'none'}")
+        print(f"{len(self.own_positions)} Own positions: {self.own_positions}")
+        print(f"Income: {self.income}\n")
 
     def get_currency_price(self):
         return BinanceClient(self.currency_for_trading).get_currency_price()
