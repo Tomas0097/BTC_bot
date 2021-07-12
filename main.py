@@ -31,10 +31,10 @@ class BinanceClient:
 
 
 class Bot:
-    number_of_action = 20
-    frequency_of_purchase_in_seconds = 5
+    number_of_actions = 40
+    frequency_of_purchase_in_seconds = 3
 
-    income = 0
+    income_of_selled_positions = 0
 
     last_but_one_position = None
     last_position = None
@@ -45,12 +45,12 @@ class Bot:
     def __init__(self, currency_for_trading):
         self.currency_for_trading = currency_for_trading
 
-    def run_trading_session1(self):
-        print(f"Bot started trading currency: {self.currency_for_trading}\n")
+    def run_trading_session(self):
+        print(f"\nBot started trading currency: {self.currency_for_trading}\n")
 
-        while self.number_of_action:
-            self.number_of_action -= 1
-            # time.sleep(self.frequency_of_purchase_in_seconds)
+        while self.number_of_actions:
+            self.number_of_actions -= 1
+            time.sleep(self.frequency_of_purchase_in_seconds)
 
             # Set up current position, last but one position and last position.
             self.set_up_positions()
@@ -62,12 +62,9 @@ class Bot:
 
             selling_positions = []
 
-            # Check income state
-            for position in self.own_positions[:-1]:
-                self.income += (self.current_position - position)
-
-                # Sell profitable positions
-                if position < self.current_position:
+            # Sell profitable position
+            for position in self.own_positions:
+                if position > self.current_position:
                     self.sell_position(position)
                     selling_positions.append(position)
 
@@ -90,20 +87,47 @@ class Bot:
         return position
 
     def sell_position(self, position):
-        self.own_positions.remove(position)
         self.selled_profitable_positions.append(position)
+        self.income_of_selled_positions += (position - self.current_position)
+        self.own_positions.remove(position)
 
     def set_up_positions(self):
         self.last_but_one_position = copy.deepcopy(self.last_position)
         self.last_position = copy.deepcopy(self.current_position)
         self.current_position = self.get_currency_price()
 
+    def get_income_of_owned_positions(self):
+        individual_incomes_from_owned_positions = []
+
+        for position in self.own_positions:
+            individual_incomes_from_owned_positions.append(position - self.current_position)
+
+        total_income_from_owned_positions = 0
+
+        for income in individual_incomes_from_owned_positions:
+            total_income_from_owned_positions += income
+
+        if total_income_from_owned_positions:
+            return total_income_from_owned_positions
+        else:
+            return 0
+
     def display_info(self, bought_current_position, selling_positions):
         print(f"{self.get_current_time()} - Current price: {self.current_position} - Bought: {'YES' if bought_current_position else 'NO'}")
         print(f"Selling positions: {selling_positions if selling_positions else 'none'}")
         print(f"All selled positions: {self.selled_profitable_positions if self.selled_profitable_positions else 'none'}")
-        print(f"{len(self.own_positions)} Own positions: {self.own_positions}")
-        print(f"Income: {self.income}\n")
+        print(f"Own positions: ({len(self.own_positions)}) - {self.own_positions}")
+        print(f"Income by selled positions: {self.income_of_selled_positions}")
+        print(f"Income after selling all positions: {self.get_income_of_owned_positions()}")
+
+        total_income = self.income_of_selled_positions + self.get_income_of_owned_positions()
+
+        if total_income > 0:
+            print(f"Total income: \033[92m{total_income}\033[0m\n")
+        elif total_income == 0:
+            print(f"Total income: {total_income}\n")
+        else:
+            print(f"Total income: \033[91m{total_income}\033[0m\n")
 
     def get_currency_price(self):
         return BinanceClient(self.currency_for_trading).get_currency_price()
@@ -114,4 +138,4 @@ class Bot:
 
 
 bot = Bot("BTCUSDT")
-bot.run_trading_session1()
+bot.run_trading_session()
