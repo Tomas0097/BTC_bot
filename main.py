@@ -31,6 +31,7 @@ class BinanceClient:
 
 
 class Bot:
+    number_of_action = 20
     frequency_of_purchase_in_seconds = 5
 
     income = 0
@@ -47,8 +48,9 @@ class Bot:
     def run_trading_session1(self):
         print(f"Bot started trading currency: {self.currency_for_trading}\n")
 
-        while True:
-            time.sleep(self.frequency_of_purchase_in_seconds)
+        while self.number_of_action:
+            self.number_of_action -= 1
+            # time.sleep(self.frequency_of_purchase_in_seconds)
 
             # Set up current position, last but one position and last position.
             self.set_up_positions()
