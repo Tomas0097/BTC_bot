@@ -25,6 +25,9 @@ class BinanceClient:
     def get_currency_price_real_time(self):
         self.binance_web_socket.start_trade_socket(callback=self.handle_socket_message, symbol=self.currency_symbol)
 
+    def get_historical_trades(self):
+        self.client.get_historical_trades(symbol=self.currency_symbol)
+
     @staticmethod
     def handle_socket_message(msg):
         print(f"BTC price in USDT: {msg['p']}")
@@ -123,3 +126,7 @@ class Bot:
 
 bot = Bot("BTCUSDT")
 bot.run_trading_session()
+
+
+# binance_client = BinanceClient("BTCUSDT")
+# binance_client.get_historical_trades()
