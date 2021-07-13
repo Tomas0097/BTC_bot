@@ -55,18 +55,12 @@ class Bot:
             # Set up current position, last but one position and last position.
             self.set_up_positions()
 
-            if self.rules_met_to_buy():
-                bought_current_position = self.buy_position(self.current_position)
-            else:
-                bought_current_position = None
+            bought_current_position = self.buy_position(self.current_position) if self.rules_met_to_buy() else None
 
-            selling_positions = []
+            selling_positions = [position for position in self.own_positions if position < self.current_position]
 
-            # Sell profitable position
-            for position in self.own_positions:
-                if position > self.current_position:
-                    self.sell_position(position)
-                    selling_positions.append(position)
+            for position in selling_positions:
+                self.sell_position(position)
 
             self.display_info(bought_current_position, selling_positions)
 
@@ -88,7 +82,7 @@ class Bot:
 
     def sell_position(self, position):
         self.selled_profitable_positions.append(position)
-        self.income_of_selled_positions += (position - self.current_position)
+        self.income_of_selled_positions += (self.current_position - position)
         self.own_positions.remove(position)
 
     def set_up_positions(self):
@@ -97,37 +91,27 @@ class Bot:
         self.current_position = self.get_currency_price()
 
     def get_income_of_owned_positions(self):
-        individual_incomes_from_owned_positions = []
+        income_from_owned_positions = sum([(self.current_position - position) for position in self.own_positions])
 
-        for position in self.own_positions:
-            individual_incomes_from_owned_positions.append(position - self.current_position)
-
-        total_income_from_owned_positions = 0
-
-        for income in individual_incomes_from_owned_positions:
-            total_income_from_owned_positions += income
-
-        if total_income_from_owned_positions:
-            return total_income_from_owned_positions
-        else:
-            return 0
+        return income_from_owned_positions if income_from_owned_positions else 0
 
     def display_info(self, bought_current_position, selling_positions):
+        income_of_owned_positions = self.get_income_of_owned_positions()
+        total_income = self.income_of_selled_positions + income_of_owned_positions
+
         print(f"{self.get_current_time()} - Current price: {self.current_position} - Bought: {'YES' if bought_current_position else 'NO'}")
         print(f"Selling positions: {selling_positions if selling_positions else 'none'}")
         print(f"All selled positions: {self.selled_profitable_positions if self.selled_profitable_positions else 'none'}")
         print(f"Own positions: ({len(self.own_positions)}) - {self.own_positions}")
         print(f"Income by selled positions: {self.income_of_selled_positions}")
-        print(f"Income after selling all positions: {self.get_income_of_owned_positions()}")
-
-        total_income = self.income_of_selled_positions + self.get_income_of_owned_positions()
+        print(f"Income after selling all positions: {income_of_owned_positions}")
 
         if total_income > 0:
-            print(f"Total income: \033[92m{total_income}\033[0m\n")
+            print(f"Total income: \033[92m{total_income}\033[0m\n")  # Green color
         elif total_income == 0:
-            print(f"Total income: {total_income}\n")
+            print(f"Total income: {total_income}\n")  # White color
         else:
-            print(f"Total income: \033[91m{total_income}\033[0m\n")
+            print(f"Total income: \033[91m{total_income}\033[0m\n")  # Red color
 
     def get_currency_price(self):
         return BinanceClient(self.currency_for_trading).get_currency_price()
