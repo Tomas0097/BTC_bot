@@ -98,6 +98,8 @@ class Bot:
 
         return income_from_owned_positions if income_from_owned_positions else 0
 
+    # TODO: Income is in general price difference for now, but it is needed in percentage difference. Formula can be found here:
+    #       https://www.justfreetools.com/cs/kalkulacky/matematicke-kalkulacky/percentage-increase-decrease-calculator
     def display_info(self, bought_current_position, selling_positions):
         income_of_owned_positions = self.get_income_of_owned_positions()
         total_income = self.income_of_selled_positions + income_of_owned_positions
